@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Tracker 🍼</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-database-compat.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Baby Tracker">
+    <style>
+        @media (max-width: 768px) {
+            input[type="number"] {
+                font-size: 16px;
+            }
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .btn-secondary:active {
+            transform: scale(0.98);
+        }
+        .breast-btn {
+            transition: all 0.2s ease;
+        }
+        .breast-btn.selected {
+            background-color: #10b981;
+            color: white;
+        }
+        .breast-btn:not(.selected) {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+        .breast-btn:hover {
+            transform: scale(1.02);
+        }
+        .event-card {
+            transition: all 0.2s ease;
+        }
+        .event-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+        }
+        .hidden {
+            display: none !important;
+        }
+        .modal {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-md mx-auto bg-white min-h-screen">
+        <!-- Header -->
+        <header class="bg-blue-500 text-white p-4 sticky top-0 z-20">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold">Baby Tracker 🍼</h1>
+                <button id="configBtn" class="text-white hover:text-gray-200 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="lastFeedInfo" class="mt-2 text-sm opacity-90">
+                <div id="lastFeedText">No recent feeds</div>
+                <div id="timeSinceLastFeed" class="text-xs opacity-75"></div>
+            </div>
+        </header>
+
+        <!-- Quick Action Buttons -->
+        <div class="p-4 space-y-3">
+            <button id="feedBtn" class="btn-primary text-white p-4 rounded-lg w-full text-lg font-semibold">
+                🍼 Feed
+            </button>
+            <button id="diaperBtn" class="btn-primary text-white p-4 rounded-lg w-full text-lg font-semibold">
+                👶 Diaper
+            </button>
+            <button id="spitUpBtn" class="btn-primary text-white p-4 rounded-lg w-full text-lg font-semibold">
+                🤮 Spit-up
+            </button>
+        </div>
+
+        <!-- Feed Options (Hidden by default) -->
+        <div id="feedOptions" class="hidden p-4 bg-blue-50 border-t border-blue-200">
+            <h3 class="text-lg font-semibold mb-3">Feed Details</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Which breast?</label>
+                    <div class="flex gap-2">
+                        <button id="leftBreastBtn" class="breast-btn p-3 rounded-lg flex-1 font-medium">
+                            👈 Left
+                        </button>
+                        <button id="rightBreastBtn" class="breast-btn p-3 rounded-lg flex-1 font-medium">
+                            👉 Right
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label for="feedDuration" class="block text-sm font-medium mb-2">Duration (minutes - optional)</label>
+                    <input type="number" id="feedDuration" class="w-full p-3 border border-gray-300 rounded-lg text-lg" placeholder="e.g., 25" min="0" max="120">
+                </div>
+                <div class="flex gap-2">
+                    <button id="saveFeedBtn" class="btn-primary text-white p-3 rounded-lg flex-1 font-medium">
+                        Save
+                    </button>
+                    <button id="cancelFeedBtn" class="btn-secondary text-white p-3 rounded-lg flex-1 font-medium">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diaper Options (Hidden by default) -->
+        <div id="diaperOptions" class="hidden p-4 bg-yellow-50 border-t border-yellow-200">
+            <h3 class="text-lg font-semibold mb-3">Diaper Change</h3>
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label class="flex items-center space-x-3">
+                        <input type="checkbox" id="poopCheck" class="w-5 h-5 rounded">
+                        <span class="text-lg">💩 Poop</span>
+                    </label>
+                    <label class="flex items-center space-x-3">
+                        <input type="checkbox" id="peeCheck" class="w-5 h-5 rounded">
+                        <span class="text-lg">💧 Pee</span>
+                    </label>
+                </div>
+                <div class="flex gap-2">
+                    <button id="saveDiaperBtn" class="btn-primary text-white p-3 rounded-lg flex-1 font-medium">
+                        Save
+                    </button>
+                    <button id="cancelDiaperBtn" class="btn-secondary text-white p-3 rounded-lg flex-1 font-medium">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="p-4">
+            <h2 class="text-xl font-bold mb-4">Today's Timeline</h2>
+            <div id="timeline" class="space-y-3">
+                <!-- Events will be populated here -->
+            </div>
+            <div id="noEvents" class="text-center text-gray-500 py-8">
+                <p class="text-lg">No events today</p>
+                <p class="text-sm">Start by logging your first event!</p>
+            </div>
+        </div>
+
+        <!-- Demo Data Toggle -->
+        <div class="p-4 border-t border-gray-200">
+            <button id="demoToggle" class="btn-secondary text-white p-2 rounded-lg w-full text-sm">
+                Toggle Demo Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration Modal -->
+    <div id="configModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-md w-full p-6">
+            <h2 class="text-xl font-bold mb-4">Firebase Setup</h2>
+            <p class="text-sm text-gray-600 mb-4">
+                To sync between devices, enter your Firebase configuration. Or click "Skip" to use local storage only.
+            </p>
+            <textarea id="firebaseConfig" class="w-full h-32 p-3 border border-gray-300 rounded-lg text-sm" placeholder="Paste your Firebase config object here..."></textarea>
+            <div class="flex gap-2 mt-4">
+                <button id="saveConfigBtn" class="btn-primary text-white p-3 rounded-lg flex-1 font-medium">
+                    Save Config
+                </button>
+                <button id="skipConfigBtn" class="btn-secondary text-white p-3 rounded-lg flex-1 font-medium">
+                    Skip
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let firebaseApp = null;
+        let database = null;
+        let selectedBreast = null;
+        let events = [];
+        let demoMode = false;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            updateTimeline();
+            updateLastFeedInfo();
+            setInterval(updateLastFeedInfo, 60000); // Update every minute
+        });
+
+        function initializeApp() {
+            // Check if Firebase config exists
+            const savedConfig = localStorage.getItem('firebaseConfig');
+            if (!savedConfig) {
+                document.getElementById('configModal').classList.remove('hidden');
+            } else {
+                try {
+                    const config = JSON.parse(savedConfig);
+                    initFirebase(config);
+                } catch (error) {
+                    console.error('Invalid Firebase config:', error);
+                    document.getElementById('configModal').classList.remove('hidden');
+                }
+            }
+
+            // Load events from localStorage
+            const savedEvents = localStorage.getItem('babyTrackerEvents');
+            if (savedEvents) {
+                events = JSON.parse(savedEvents);
+            }
+
+            // Set up event listeners
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            // Main buttons
+            document.getElementById('feedBtn').addEventListener('click', showFeedOptions);
+            document.getElementById('diaperBtn').addEventListener('click', showDiaperOptions);
+            document.getElementById('spitUpBtn').addEventListener('click', () => logEvent('spit-up', {}));
+
+            // Feed options
+            document.getElementById('leftBreastBtn').addEventListener('click', () => selectBreast('left'));
+            document.getElementById('rightBreastBtn').addEventListener('click', () => selectBreast('right'));
+            document.getElementById('saveFeedBtn').addEventListener('click', logFeed);
+            document.getElementById('cancelFeedBtn').addEventListener('click', hideFeedOptions);
+
+            // Diaper options
+            document.getElementById('saveDiaperBtn').addEventListener('click', logDiaper);
+            document.getElementById('cancelDiaperBtn').addEventListener('click', hideDiaperOptions);
+
+            // Config modal
+            document.getElementById('configBtn').addEventListener('click', () => {
+                document.getElementById('configModal').classList.remove('hidden');
+            });
+            document.getElementById('saveConfigBtn').addEventListener('click', saveFirebaseConfig);
+            document.getElementById('skipConfigBtn').addEventListener('click', skipFirebaseConfig);
+
+            // Demo toggle
+            document.getElementById('demoToggle').addEventListener('click', toggleDemoData);
+        }
+
+        function showFeedOptions() {
+            document.getElementById('feedOptions').classList.remove('hidden');
+            selectedBreast = null;
+            document.getElementById('leftBreastBtn').classList.remove('selected');
+            document.getElementById('rightBreastBtn').classList.remove('selected');
+            document.getElementById('feedDuration').value = '';
+        }
+
+        function hideFeedOptions() {
+            document.getElementById('feedOptions').classList.add('hidden');
+        }
+
+        function showDiaperOptions() {
+            document.getElementById('diaperOptions').classList.remove('hidden');
+            document.getElementById('poopCheck').checked = false;
+            document.getElementById('peeCheck').checked = false;
+        }
+
+        function hideDiaperOptions() {
+            document.getElementById('diaperOptions').classList.add('hidden');
+        }
+
+        function selectBreast(side) {
+            selectedBreast = side;
+            document.getElementById('leftBreastBtn').classList.toggle('selected', side === 'left');
+            document.getElementById('rightBreastBtn').classList.toggle('selected', side === 'right');
+        }
+
+        function logFeed() {
+            if (!selectedBreast) {
+                alert('Please select which breast was used.');
+                return;
+            }
+
+            const duration = document.getElementById('feedDuration').value;
+            const details = {
+                breast: selectedBreast,
+                duration: duration ? parseInt(duration) : null
+            };
+
+            logEvent('feed', details);
+            hideFeedOptions();
+        }
+
+        function logDiaper() {
+            const poop = document.getElementById('poopCheck').checked;
+            const pee = document.getElementById('peeCheck').checked;
+
+            if (!poop && !pee) {
+                alert('Please select what happened.');
+                return;
+            }
+
+            const details = { poop, pee };
+            logEvent('diaper', details);
+            hideDiaperOptions();
+        }
+
+        function logEvent(type, details) {
+            const now = new Date();
+            const event = {
+                id: now.getTime().toString(),
+                timestamp: now.toISOString(),
+                type: type,
+                ...details
+            };
+
+            events.unshift(event);
+            saveEvent(event);
+            updateTimeline();
+            updateLastFeedInfo();
+        }
+
+        function saveEvent(event) {
+            // Save to localStorage
+            localStorage.setItem('babyTrackerEvents', JSON.stringify(events));
+
+            // Save to Firebase if available
+            if (database) {
+                database.ref('events/' + event.id).set(event);
+            }
+        }
+
+        function updateTimeline() {
+            const timeline = document.getElementById('timeline');
+            const noEvents = document.getElementById('noEvents');
+            
+            // Filter today's events
+            const today = new Date().toDateString();
+            const todayEvents = events.filter(event => 
+                new Date(event.timestamp).toDateString() === today
+            );
+
+            if (todayEvents.length === 0) {
+                timeline.innerHTML = '';
+                noEvents.classList.remove('hidden');
+                return;
+            }
+
+            noEvents.classList.add('hidden');
+            
+            timeline.innerHTML = todayEvents.map(event => {
+                const time = new Date(event.timestamp).toLocaleTimeString([], {
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
+
+                let icon, bgColor, details;
+                
+                if (event.type === 'feed') {
+                    icon = '🍼';
+                    bgColor = 'bg-blue-100 border-blue-300';
+                    details = `${event.breast} breast${event.duration ? ` • ${event.duration} min` : ''}`;
+                } else if (event.type === 'diaper') {
+                    icon = '👶';
+                    bgColor = 'bg-yellow-100 border-yellow-300';
+                    details = [
+                        event.poop ? '💩 Poop' : '',
+                        event.pee ? '💧 Pee' : ''
+                    ].filter(Boolean).join(' & ');
+                } else if (event.type === 'spit-up') {
+                    icon = '🤮';
+                    bgColor = 'bg-red-100 border-red-300';
+                    details = 'Spit-up';
+                }
+
+                return `
+                    <div class="event-card p-4 rounded-lg border-2 ${bgColor}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <span class="text-2xl">${icon}</span>
+                                <div>
+                                    <div class="font-semibold">${details}</div>
+                                    <div class="text-sm text-gray-600">${time}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateLastFeedInfo() {
+            const lastFeed = events.find(event => event.type === 'feed');
+            const lastFeedText = document.getElementById('lastFeedText');
+            const timeSinceLastFeed = document.getElementById('timeSinceLastFeed');
+
+            if (!lastFeed) {
+                lastFeedText.textContent = 'No recent feeds';
+                timeSinceLastFeed.textContent = '';
+                return;
+            }
+
+            const now = new Date();
+            const feedTime = new Date(lastFeed.timestamp);
+            const diffMs = now - feedTime;
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+            lastFeedText.textContent = `Last feed: ${lastFeed.breast} breast`;
+            
+            if (diffHours > 0) {
+                timeSinceLastFeed.textContent = `${diffHours}h ${diffMins}m ago`;
+            } else {
+                timeSinceLastFeed.textContent = `${diffMins}m ago`;
+            }
+        }
+
+        function initFirebase(config) {
+            try {
+                firebaseApp = firebase.initializeApp(config);
+                database = firebase.database();
+                
+                // Listen for changes
+                database.ref('events').on('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        const firebaseEvents = Object.values(snapshot.val());
+                        // Merge with local events, avoiding duplicates
+                        const allEvents = [...events];
+                        firebaseEvents.forEach(fbEvent => {
+                            if (!allEvents.find(e => e.id === fbEvent.id)) {
+                                allEvents.push(fbEvent);
+                            }
+                        });
+                        events = allEvents.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                        localStorage.setItem('babyTrackerEvents', JSON.stringify(events));
+                        updateTimeline();
+                        updateLastFeedInfo();
+                    }
+                });
+            } catch (error) {
+                console.error('Firebase initialization failed:', error);
+                alert('Firebase setup failed. Using local storage only.');
+            }
+        }
+
+        function saveFirebaseConfig() {
+            const configText = document.getElementById('firebaseConfig').value.trim();
+            if (!configText) {
+                alert('Please enter your Firebase configuration.');
+                return;
+            }
+
+            try {
+                const config = JSON.parse(configText);
+                localStorage.setItem('firebaseConfig', JSON.stringify(config));
+                initFirebase(config);
+                document.getElementById('configModal').classList.add('hidden');
+            } catch (error) {
+                alert('Invalid JSON configuration. Please check your input.');
+            }
+        }
+
+        function skipFirebaseConfig() {
+            localStorage.setItem('firebaseConfig', 'skipped');
+            document.getElementById('configModal').classList.add('hidden');
+        }
+
+        function toggleDemoData() {
+            if (demoMode) {
+                // Clear demo data
+                events = events.filter(e => !e.demo);
+                demoMode = false;
+            } else {
+                // Add demo data
+                const now = new Date();
+                const demoEvents = [
+                    {
+                        id: 'demo1',
+                        timestamp: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(),
+                        type: 'feed',
+                        breast: 'left',
+                        duration: 25,
+                        demo: true
+                    },
+                    {
+                        id: 'demo2',
+                        timestamp: new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString(),
+                        type: 'diaper',
+                        poop: true,
+                        pee: true,
+                        demo: true
+                    },
+                    {
+                        id: 'demo3',
+                        timestamp: new Date(now.getTime() - 6 * 60 * 60 * 1000).toISOString(),
+                        type: 'spit-up',
+                        demo: true
+                    }
+                ];
+                events = [...demoEvents, ...events];
+                demoMode = true;
+            }
+            updateTimeline();
+            updateLastFeedInfo();
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('configModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                if (localStorage.getItem('firebaseConfig')) {
+                    this.classList.add('hidden');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

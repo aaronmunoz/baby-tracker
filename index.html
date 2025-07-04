@@ -467,11 +467,34 @@
             document.getElementById('skipConfigBtn').addEventListener('click', skipFirebaseConfig);
 
             // Diagnostics modal
-            document.getElementById('diagnosticsBtn').addEventListener('click', showDiagnostics);
-            document.getElementById('closeDiagnosticsBtn').addEventListener('click', hideDiagnostics);
-            document.getElementById('testFirebaseBtn').addEventListener('click', testFirebaseConnection);
-            document.getElementById('exportDataBtn').addEventListener('click', exportData);
-            document.getElementById('clearLocalBtn').addEventListener('click', clearLocalData);
+            const diagnosticsBtn = document.getElementById('diagnosticsBtn');
+            console.log('Diagnostics button element:', diagnosticsBtn);
+            if (diagnosticsBtn) {
+                diagnosticsBtn.addEventListener('click', showDiagnostics);
+                console.log('Diagnostics event listener added');
+            } else {
+                console.error('Diagnostics button not found!');
+            }
+            
+            const closeDiagnosticsBtn = document.getElementById('closeDiagnosticsBtn');
+            if (closeDiagnosticsBtn) {
+                closeDiagnosticsBtn.addEventListener('click', hideDiagnostics);
+            }
+            
+            const testFirebaseBtn = document.getElementById('testFirebaseBtn');
+            if (testFirebaseBtn) {
+                testFirebaseBtn.addEventListener('click', testFirebaseConnection);
+            }
+            
+            const exportDataBtn = document.getElementById('exportDataBtn');
+            if (exportDataBtn) {
+                exportDataBtn.addEventListener('click', exportData);
+            }
+            
+            const clearLocalBtn = document.getElementById('clearLocalBtn');
+            if (clearLocalBtn) {
+                clearLocalBtn.addEventListener('click', clearLocalData);
+            }
 
             // Demo toggle
             document.getElementById('demoToggle').addEventListener('click', toggleDemoData);
@@ -754,9 +777,16 @@
         }
 
         function showDiagnostics() {
+            console.log('showDiagnostics called');
             addToLog('Opening diagnostics panel');
             updateDiagnosticsInfo();
-            document.getElementById('diagnosticsModal').classList.remove('hidden');
+            const modal = document.getElementById('diagnosticsModal');
+            console.log('Diagnostics modal element:', modal);
+            if (modal) {
+                modal.classList.remove('hidden');
+            } else {
+                console.error('Diagnostics modal not found!');
+            }
         }
 
         function hideDiagnostics() {

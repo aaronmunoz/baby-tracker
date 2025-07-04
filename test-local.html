@@ -234,6 +234,24 @@
                     Perfect for a comprehensive Firebase health check.
                 </span>
             </div>
+            
+            <div class="btn-with-tooltip">
+                <button onclick="debugDatabaseUrl()">🔍 Debug Database URL</button>
+                <span class="tooltip">
+                    <strong>Debug Database URL</strong><br>
+                    Tests different database URL formats and checks if Realtime Database is properly enabled. 
+                    Useful when getting "database not found" errors.
+                </span>
+            </div>
+            
+            <div class="btn-with-tooltip">
+                <button onclick="testDatabaseRules()">🛡️ Test Database Rules</button>
+                <span class="tooltip">
+                    <strong>Test Database Rules</strong><br>
+                    Checks if your database rules allow read/write operations. 
+                    Helpful when getting permission denied errors.
+                </span>
+            </div>
         </div>
         
         <div id="eventResult"></div>
@@ -263,6 +281,68 @@
                 <span class="status-indicator status-unknown"></span>
                 <strong>Read Operations:</strong> <span id="readStatus">Not tested</span>
             </div>
+        </div>
+    </div>
+    
+    <!-- Troubleshooting Guide -->
+    <div class="section">
+        <h2>🩺 Common Issues & Solutions</h2>
+        <div style="font-size: 14px;">
+            <details style="margin: 10px 0;">
+                <summary style="cursor: pointer; font-weight: bold; margin-bottom: 10px;">❌ Database Connection Errors</summary>
+                <div style="padding-left: 20px; color: #6c757d;">
+                    <p><strong>Symptoms:</strong> "Connection failed", "Database not found", "PERMISSION_DENIED"</p>
+                    <p><strong>Solutions:</strong></p>
+                    <ul>
+                        <li>Make sure <strong>Realtime Database</strong> is enabled in Firebase Console (not just Firestore)</li>
+                        <li>Check your database URL format - try the "🔍 Debug Database URL" button</li>
+                        <li>Verify database rules allow read/write - try the "🛡️ Test Database Rules" button</li>
+                        <li>Ensure your Firebase project is active and not suspended</li>
+                    </ul>
+                </div>
+            </details>
+            
+            <details style="margin: 10px 0;">
+                <summary style="cursor: pointer; font-weight: bold; margin-bottom: 10px;">🔥 Firebase Initialization Errors</summary>
+                <div style="padding-left: 20px; color: #6c757d;">
+                    <p><strong>Symptoms:</strong> "Firebase app named '[DEFAULT]' already exists", "Invalid API key"</p>
+                    <p><strong>Solutions:</strong></p>
+                    <ul>
+                        <li>Refresh the page and try again (clears existing Firebase app)</li>
+                        <li>Double-check your API key and project ID are correct</li>
+                        <li>Make sure you copied the complete config object</li>
+                        <li>Verify your Firebase project exists and you have access</li>
+                    </ul>
+                </div>
+            </details>
+            
+            <details style="margin: 10px 0;">
+                <summary style="cursor: pointer; font-weight: bold; margin-bottom: 10px;">🌐 Network/CORS Errors</summary>
+                <div style="padding-left: 20px; color: #6c757d;">
+                    <p><strong>Symptoms:</strong> "CORS policy", "Network request failed", "Access blocked"</p>
+                    <p><strong>Solutions:</strong></p>
+                    <ul>
+                        <li>Make sure you're running the development server (npm run dev)</li>
+                        <li>Don't open the HTML file directly in browser - use http://localhost:8000</li>
+                        <li>Check your internet connection</li>
+                        <li>Try disabling browser extensions temporarily</li>
+                    </ul>
+                </div>
+            </details>
+            
+            <details style="margin: 10px 0;">
+                <summary style="cursor: pointer; font-weight: bold; margin-bottom: 10px;">📋 Config Issues</summary>
+                <div style="padding-left: 20px; color: #6c757d;">
+                    <p><strong>Symptoms:</strong> "Missing required fields", "Invalid JSON"</p>
+                    <p><strong>Solutions:</strong></p>
+                    <ul>
+                        <li>Get config from Firebase Console > Project Settings > General > Your apps</li>
+                        <li>Copy the entire config object including { } braces</li>
+                        <li>Don't include the "const firebaseConfig = " part</li>
+                        <li>Make sure all quotes are properly escaped</li>
+                    </ul>
+                </div>
+            </details>
         </div>
     </div>
 
@@ -354,22 +434,58 @@
                 debugLog('✅ Database reference created', 'success');
                 updateStatus('connectionStatus', 'unknown', 'Testing connection...');
                 
-                // Test connection
+                // Test connection with detailed debugging
                 debugLog('🔌 Testing database connection...');
-                database.ref('.info/connected').once('value')
-                    .then(function(snapshot) {
-                        if (snapshot.val() === true) {
-                            debugLog('✅ Database connection successful!', 'success');
-                            updateStatus('connectionStatus', 'success', 'Connected to Firebase');
-                        } else {
-                            debugLog('❌ Database not connected', 'error');
-                            updateStatus('connectionStatus', 'error', 'Not connected');
-                        }
-                    })
-                    .catch(function(error) {
-                        debugLog(`❌ Connection test failed: ${error.message}`, 'error');
-                        updateStatus('connectionStatus', 'error', `Connection failed: ${error.message}`);
-                    });
+                
+                // First, let's check what database URL we're actually using
+                const actualDbUrl = config.databaseURL || `https://${config.projectId}-default-rtdb.firebaseio.com/`;
+                debugLog(`📍 Database URL: ${actualDbUrl}`);
+                
+                // Check if the database reference is valid
+                try {
+                    const testRef = database.ref('.info/connected');
+                    debugLog('✅ Database reference created successfully');
+                    
+                    // Set up connection monitoring
+                    testRef.once('value')
+                        .then(function(snapshot) {
+                            debugLog(`📡 Connection snapshot received, value: ${snapshot.val()}`);
+                            if (snapshot.val() === true) {
+                                debugLog('✅ Database connection successful!', 'success');
+                                updateStatus('connectionStatus', 'success', 'Connected to Firebase');
+                                
+                                // Test if we can access the database root
+                                return database.ref('/').once('value');
+                            } else {
+                                throw new Error('Database connection returned false');
+                            }
+                        })
+                        .then(function(rootSnapshot) {
+                            debugLog('✅ Database root access successful', 'success');
+                            debugLog(`📊 Database has data: ${rootSnapshot.exists()}`);
+                        })
+                        .catch(function(error) {
+                            debugLog(`❌ Connection test failed: ${error.message}`, 'error');
+                            debugLog(`🔍 Error code: ${error.code || 'NO_CODE'}`);
+                            debugLog(`🔍 Error details: ${JSON.stringify(error)}`, 'error');
+                            updateStatus('connectionStatus', 'error', `Connection failed: ${error.message}`);
+                            
+                            // Additional debugging for common issues
+                            if (error.message.includes('permission') || error.message.includes('Permission')) {
+                                debugLog('💡 This looks like a permissions issue. Check your Firebase Database Rules!', 'warning');
+                            }
+                            if (error.message.includes('not found') || error.message.includes('404')) {
+                                debugLog('💡 Database not found. Make sure Realtime Database is enabled in Firebase Console!', 'warning');
+                            }
+                            if (error.message.includes('network') || error.message.includes('Network')) {
+                                debugLog('💡 Network issue. Check your internet connection and Firebase project status.', 'warning');
+                            }
+                        });
+                        
+                } catch (refError) {
+                    debugLog(`❌ Failed to create database reference: ${refError.message}`, 'error');
+                    updateStatus('connectionStatus', 'error', `Reference failed: ${refError.message}`);
+                }
                 
             } catch (error) {
                 debugLog(`❌ Firebase init failed: ${error.message}`, 'error');
@@ -530,6 +646,96 @@
                 })
                 .catch(function(error) {
                     debugLog(`❌ Test event creation failed: ${error.message}`, 'error');
+                });
+        }
+
+        function debugDatabaseUrl() {
+            debugLog('🔍 Starting database URL debugging...');
+            
+            const configText = document.getElementById('firebaseConfig').value.trim();
+            if (!configText) {
+                debugLog('❌ No config provided for URL debugging', 'error');
+                return;
+            }
+
+            try {
+                const config = JSON.parse(configText);
+                
+                // Test different URL formats
+                const possibleUrls = [
+                    config.databaseURL,
+                    `https://${config.projectId}-default-rtdb.firebaseio.com/`,
+                    `https://${config.projectId}-default-rtdb.europe-west1.firebasedatabase.app/`,
+                    `https://${config.projectId}-default-rtdb.asia-southeast1.firebasedatabase.app/`,
+                    `https://${config.projectId}.firebaseio.com/`
+                ].filter(Boolean);
+                
+                debugLog(`🧪 Testing ${possibleUrls.length} possible database URLs...`);
+                
+                possibleUrls.forEach(function(url, index) {
+                    debugLog(`${index + 1}. Testing: ${url}`);
+                    
+                    // Test if URL is reachable
+                    fetch(url + '.json?shallow=true', { method: 'GET' })
+                        .then(function(response) {
+                            if (response.ok) {
+                                debugLog(`✅ URL ${index + 1} is reachable (${response.status})`, 'success');
+                                return response.text();
+                            } else {
+                                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                            }
+                        })
+                        .then(function(data) {
+                            debugLog(`📊 URL ${index + 1} response: ${data.substring(0, 100)}...`);
+                        })
+                        .catch(function(error) {
+                            debugLog(`❌ URL ${index + 1} failed: ${error.message}`, 'error');
+                        });
+                });
+                
+            } catch (error) {
+                debugLog(`❌ Config parsing failed: ${error.message}`, 'error');
+            }
+        }
+
+        function testDatabaseRules() {
+            debugLog('🛡️ Testing database rules...');
+            
+            if (!database) {
+                debugLog('❌ No database connection to test rules', 'error');
+                return;
+            }
+            
+            // Test read permission
+            debugLog('📖 Testing read permissions...');
+            database.ref('/.info/connected').once('value')
+                .then(function(snapshot) {
+                    debugLog('✅ Read permission test passed', 'success');
+                    
+                    // Test write permission with a temporary test
+                    debugLog('📝 Testing write permissions...');
+                    const testPath = '.test-rules-' + Date.now();
+                    return database.ref(testPath).set({ test: true });
+                })
+                .then(function() {
+                    debugLog('✅ Write permission test passed', 'success');
+                    
+                    // Clean up test data
+                    const testPath = '.test-rules-' + Date.now();
+                    return database.ref(testPath).remove();
+                })
+                .then(function() {
+                    debugLog('✅ Delete permission test passed', 'success');
+                    debugLog('🎉 All database rules tests passed!', 'success');
+                })
+                .catch(function(error) {
+                    debugLog(`❌ Database rules test failed: ${error.message}`, 'error');
+                    
+                    if (error.message.includes('permission') || error.message.includes('Permission')) {
+                        debugLog('💡 Permission denied! Your database rules need to be updated.', 'warning');
+                        debugLog('💡 Try setting rules to: { "rules": { ".read": true, ".write": true } }', 'warning');
+                        debugLog('💡 Go to Firebase Console > Realtime Database > Rules', 'warning');
+                    }
                 });
         }
 

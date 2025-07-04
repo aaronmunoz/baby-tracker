@@ -3,77 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby Tracker 🍼</title>
+    <title>Le Petit Marché • Baby Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-database-compat.js"></script>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#3b82f6">
+    <meta name="theme-color" content="#8B4513">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Baby Tracker">
+    <meta name="apple-mobile-web-app-title" content="Le Petit Marché">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --vintage-cream: #F5F1E8;
+            --vintage-brown: #8B4513;
+            --vintage-green: #6B7A40;
+            --vintage-blue: #4F6D7A;
+            --vintage-red: #A0522D;
+            --vintage-gold: #D4AF37;
+            --vintage-text: #3D2914;
+            --vintage-light: #E8DCC6;
+        }
+        
+        * {
+            font-family: 'Crimson Text', serif;
+        }
+        
+        h1, h2, h3, .french-header {
+            font-family: 'Playfair Display', serif;
+        }
+        
         @media (max-width: 768px) {
             input[type="number"] {
                 font-size: 16px;
             }
         }
+        
         .btn-primary {
-            background-color: #3b82f6;
-            transition: all 0.2s ease;
+            background: linear-gradient(135deg, var(--vintage-brown), var(--vintage-red));
+            color: var(--vintage-cream);
+            border: 2px solid var(--vintage-gold);
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
+        
         .btn-primary:hover {
-            background-color: #2563eb;
+            background: linear-gradient(135deg, var(--vintage-red), var(--vintage-brown));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         }
+        
         .btn-primary:active {
-            transform: scale(0.98);
+            transform: translateY(0);
         }
+        
         .btn-secondary {
-            background-color: #6b7280;
-            transition: all 0.2s ease;
+            background: linear-gradient(135deg, var(--vintage-green), var(--vintage-blue));
+            color: var(--vintage-cream);
+            border: 2px solid var(--vintage-gold);
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
+        
         .btn-secondary:hover {
-            background-color: #4b5563;
+            background: linear-gradient(135deg, var(--vintage-blue), var(--vintage-green));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         }
+        
         .btn-secondary:active {
-            transform: scale(0.98);
+            transform: translateY(0);
         }
+        
         .breast-btn {
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            border: 2px solid var(--vintage-gold);
+            background: var(--vintage-light);
+            color: var(--vintage-text);
+            font-weight: 600;
         }
+        
         .breast-btn.selected {
-            background-color: #10b981;
-            color: white;
+            background: linear-gradient(135deg, var(--vintage-green), var(--vintage-blue));
+            color: var(--vintage-cream);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
-        .breast-btn:not(.selected) {
-            background-color: #f3f4f6;
-            color: #374151;
-        }
+        
         .breast-btn:hover {
             transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
+        
         .event-card {
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            border: 2px solid var(--vintage-gold);
+            background: var(--vintage-light);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
+        
         .event-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
         }
+        
         .hidden {
             display: none !important;
         }
+        
         .modal {
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(61, 41, 20, 0.7);
             backdrop-filter: blur(4px);
+        }
+        
+        .vintage-paper {
+            background: linear-gradient(135deg, var(--vintage-cream), var(--vintage-light));
+            border: 3px solid var(--vintage-gold);
+            box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.1);
+        }
+        
+        .vintage-header {
+            background: linear-gradient(135deg, var(--vintage-brown), var(--vintage-red));
+            border-bottom: 3px solid var(--vintage-gold);
+            color: var(--vintage-cream);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .vintage-divider {
+            border-color: var(--vintage-gold);
+            opacity: 0.6;
+        }
+        
+        .french-accent {
+            color: var(--vintage-red);
+            font-style: italic;
+        }
+        
+        .market-stall {
+            background: var(--vintage-light);
+            border: 2px solid var(--vintage-gold);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        
+        .event-card-feed {
+            background: linear-gradient(135deg, #E8DCC6, #F5F1E8);
+            border-color: var(--vintage-green);
+        }
+        
+        .event-card-diaper {
+            background: linear-gradient(135deg, #F5F1E8, #E8DCC6);
+            border-color: var(--vintage-blue);
+        }
+        
+        .event-card-spit {
+            background: linear-gradient(135deg, #E8DCC6, #D4C4A8);
+            border-color: var(--vintage-red);
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <div class="max-w-md mx-auto bg-white min-h-screen">
+<body style="background: linear-gradient(135deg, var(--vintage-cream), var(--vintage-light)); min-height: 100vh; color: var(--vintage-text);">
+    <div class="max-w-md mx-auto vintage-paper min-h-screen">
         <!-- Header -->
-        <header class="bg-blue-500 text-white p-4 sticky top-0 z-20">
+        <header class="vintage-header p-4 sticky top-0 z-20">
             <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold">Baby Tracker 🍼</h1>
+                <div>
+                    <h1 class="text-2xl font-bold french-header">Le Petit Marché</h1>
+                    <p class="text-sm french-accent">~ Baby's Journal ~</p>
+                </div>
                 <button id="configBtn" class="text-white hover:text-gray-200 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -82,74 +183,74 @@
                 </button>
             </div>
             <div id="lastFeedInfo" class="mt-2 text-sm opacity-90">
-                <div id="lastFeedText">No recent feeds</div>
+                <div id="lastFeedText">No recent feeding, mon petit</div>
                 <div id="timeSinceLastFeed" class="text-xs opacity-75"></div>
             </div>
         </header>
 
         <!-- Quick Action Buttons -->
         <div class="p-4 space-y-3">
-            <button id="feedBtn" class="btn-primary text-white p-4 rounded-lg w-full text-lg font-semibold">
-                🍼 Feed
+            <button id="feedBtn" class="btn-primary p-4 rounded-lg w-full text-lg font-semibold">
+                🥛 Ze Feeding
             </button>
-            <button id="diaperBtn" class="btn-primary text-white p-4 rounded-lg w-full text-lg font-semibold">
-                👶 Diaper
+            <button id="diaperBtn" class="btn-primary p-4 rounded-lg w-full text-lg font-semibold">
+                🧷 Ze Diaper
             </button>
-            <button id="spitUpBtn" class="btn-primary text-white p-4 rounded-lg w-full text-lg font-semibold">
-                🤮 Spit-up
+            <button id="spitUpBtn" class="btn-primary p-4 rounded-lg w-full text-lg font-semibold">
+                🤧 Ze Spit-up
             </button>
         </div>
 
         <!-- Feed Options (Hidden by default) -->
-        <div id="feedOptions" class="hidden p-4 bg-blue-50 border-t border-blue-200">
-            <h3 class="text-lg font-semibold mb-3">Feed Details</h3>
+        <div id="feedOptions" class="hidden p-4 market-stall border-t vintage-divider">
+            <h3 class="text-lg font-semibold mb-3 french-header">Ze Feeding Details</h3>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium mb-2">Which breast?</label>
+                    <label class="block text-sm font-medium mb-2">Which side, ma chérie?</label>
                     <div class="flex gap-2">
                         <button id="leftBreastBtn" class="breast-btn p-3 rounded-lg flex-1 font-medium">
-                            👈 Left
+                            ← Left Side
                         </button>
                         <button id="rightBreastBtn" class="breast-btn p-3 rounded-lg flex-1 font-medium">
-                            👉 Right
+                            Right Side →
                         </button>
                     </div>
                 </div>
                 <div>
-                    <label for="feedDuration" class="block text-sm font-medium mb-2">Duration (minutes - optional)</label>
-                    <input type="number" id="feedDuration" class="w-full p-3 border border-gray-300 rounded-lg text-lg" placeholder="e.g., 25" min="0" max="120">
+                    <label for="feedDuration" class="block text-sm font-medium mb-2">Duration (minutes - optional, oui?)</label>
+                    <input type="number" id="feedDuration" class="w-full p-3 border-2 border-gold-400 rounded-lg text-lg vintage-paper" placeholder="e.g., 25" min="0" max="120">
                 </div>
                 <div class="flex gap-2">
-                    <button id="saveFeedBtn" class="btn-primary text-white p-3 rounded-lg flex-1 font-medium">
-                        Save
+                    <button id="saveFeedBtn" class="btn-primary p-3 rounded-lg flex-1 font-medium">
+                        Save, s'il vous plaît
                     </button>
-                    <button id="cancelFeedBtn" class="btn-secondary text-white p-3 rounded-lg flex-1 font-medium">
-                        Cancel
+                    <button id="cancelFeedBtn" class="btn-secondary p-3 rounded-lg flex-1 font-medium">
+                        Non, merci
                     </button>
                 </div>
             </div>
         </div>
 
         <!-- Diaper Options (Hidden by default) -->
-        <div id="diaperOptions" class="hidden p-4 bg-yellow-50 border-t border-yellow-200">
-            <h3 class="text-lg font-semibold mb-3">Diaper Change</h3>
+        <div id="diaperOptions" class="hidden p-4 market-stall border-t vintage-divider">
+            <h3 class="text-lg font-semibold mb-3 french-header">Ze Diaper Change</h3>
             <div class="space-y-4">
                 <div class="space-y-2">
                     <label class="flex items-center space-x-3">
                         <input type="checkbox" id="poopCheck" class="w-5 h-5 rounded">
-                        <span class="text-lg">💩 Poop</span>
+                        <span class="text-lg">🟤 Ze Poop</span>
                     </label>
                     <label class="flex items-center space-x-3">
                         <input type="checkbox" id="peeCheck" class="w-5 h-5 rounded">
-                        <span class="text-lg">💧 Pee</span>
+                        <span class="text-lg">💛 Ze Pee</span>
                     </label>
                 </div>
                 <div class="flex gap-2">
-                    <button id="saveDiaperBtn" class="btn-primary text-white p-3 rounded-lg flex-1 font-medium">
-                        Save
+                    <button id="saveDiaperBtn" class="btn-primary p-3 rounded-lg flex-1 font-medium">
+                        Save, s'il vous plaît
                     </button>
-                    <button id="cancelDiaperBtn" class="btn-secondary text-white p-3 rounded-lg flex-1 font-medium">
-                        Cancel
+                    <button id="cancelDiaperBtn" class="btn-secondary p-3 rounded-lg flex-1 font-medium">
+                        Non, merci
                     </button>
                 </div>
             </div>
@@ -157,38 +258,38 @@
 
         <!-- Timeline -->
         <div class="p-4">
-            <h2 class="text-xl font-bold mb-4">Today's Timeline</h2>
+            <h2 class="text-xl font-bold mb-4 french-header">Today's Little Chronicle</h2>
             <div id="timeline" class="space-y-3">
                 <!-- Events will be populated here -->
             </div>
-            <div id="noEvents" class="text-center text-gray-500 py-8">
-                <p class="text-lg">No events today</p>
-                <p class="text-sm">Start by logging your first event!</p>
+            <div id="noEvents" class="text-center py-8" style="color: var(--vintage-text); opacity: 0.7;">
+                <p class="text-lg french-header">No events today, mon petit</p>
+                <p class="text-sm french-accent">Start by recording your first little moment!</p>
             </div>
         </div>
 
         <!-- Demo Data Toggle -->
-        <div class="p-4 border-t border-gray-200">
-            <button id="demoToggle" class="btn-secondary text-white p-2 rounded-lg w-full text-sm">
-                Toggle Demo Data
+        <div class="p-4 border-t vintage-divider">
+            <button id="demoToggle" class="btn-secondary p-2 rounded-lg w-full text-sm">
+                Show Demo Data
             </button>
         </div>
     </div>
 
     <!-- Firebase Configuration Modal -->
     <div id="configModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg max-w-md w-full p-6">
-            <h2 class="text-xl font-bold mb-4">Firebase Setup</h2>
-            <p class="text-sm text-gray-600 mb-4">
-                To sync between devices, enter your Firebase configuration. Or click "Skip" to use local storage only.
+        <div class="vintage-paper rounded-lg max-w-md w-full p-6">
+            <h2 class="text-xl font-bold mb-4 french-header">Firebase Setup</h2>
+            <p class="text-sm mb-4" style="color: var(--vintage-text); opacity: 0.8;">
+                To sync between devices, enter your Firebase configuration. Or click "Skip" to use local storage only, oui?
             </p>
-            <textarea id="firebaseConfig" class="w-full h-32 p-3 border border-gray-300 rounded-lg text-sm" placeholder="Paste your Firebase config object here..."></textarea>
+            <textarea id="firebaseConfig" class="w-full h-32 p-3 border-2 rounded-lg text-sm vintage-paper" style="border-color: var(--vintage-gold);" placeholder="Paste your Firebase config object here, s'il vous plaît..."></textarea>
             <div class="flex gap-2 mt-4">
-                <button id="saveConfigBtn" class="btn-primary text-white p-3 rounded-lg flex-1 font-medium">
+                <button id="saveConfigBtn" class="btn-primary p-3 rounded-lg flex-1 font-medium">
                     Save Config
                 </button>
-                <button id="skipConfigBtn" class="btn-secondary text-white p-3 rounded-lg flex-1 font-medium">
-                    Skip
+                <button id="skipConfigBtn" class="btn-secondary p-3 rounded-lg flex-1 font-medium">
+                    Skip, merci
                 </button>
             </div>
         </div>
@@ -292,7 +393,7 @@
 
         function logFeed() {
             if (!selectedBreast) {
-                alert('Please select which breast was used.');
+                alert('Please select which side was used, ma chérie!');
                 return;
             }
 
@@ -311,7 +412,7 @@
             const pee = document.getElementById('peeCheck').checked;
 
             if (!poop && !pee) {
-                alert('Please select what happened.');
+                alert('Please select what happened, s\'il vous plaît!');
                 return;
             }
 
@@ -372,20 +473,21 @@
                 let icon, bgColor, details;
                 
                 if (event.type === 'feed') {
-                    icon = '🍼';
-                    bgColor = 'bg-blue-100 border-blue-300';
-                    details = `${event.breast} breast${event.duration ? ` • ${event.duration} min` : ''}`;
+                    icon = '🥛';
+                    bgColor = 'event-card-feed';
+                    const breastText = event.breast === 'left' ? 'left side' : 'right side';
+                    details = `Fed on ${breastText}${event.duration ? ` • ${event.duration} min` : ''}`;
                 } else if (event.type === 'diaper') {
-                    icon = '👶';
-                    bgColor = 'bg-yellow-100 border-yellow-300';
+                    icon = '🧷';
+                    bgColor = 'event-card-diaper';
                     details = [
-                        event.poop ? '💩 Poop' : '',
-                        event.pee ? '💧 Pee' : ''
+                        event.poop ? '🟤 Ze Poop' : '',
+                        event.pee ? '💛 Ze Pee' : ''
                     ].filter(Boolean).join(' & ');
                 } else if (event.type === 'spit-up') {
-                    icon = '🤮';
-                    bgColor = 'bg-red-100 border-red-300';
-                    details = 'Spit-up';
+                    icon = '🤧';
+                    bgColor = 'event-card-spit';
+                    details = 'Ze Spit-up, oh la la!';
                 }
 
                 return `
@@ -410,7 +512,7 @@
             const timeSinceLastFeed = document.getElementById('timeSinceLastFeed');
 
             if (!lastFeed) {
-                lastFeedText.textContent = 'No recent feeds';
+                lastFeedText.textContent = 'No recent feeding, mon petit';
                 timeSinceLastFeed.textContent = '';
                 return;
             }
@@ -421,7 +523,8 @@
             const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
             const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
-            lastFeedText.textContent = `Last feed: ${lastFeed.breast} breast`;
+            const breastText = lastFeed.breast === 'left' ? 'left side' : 'right side';
+            lastFeedText.textContent = `Last feeding: ${breastText}`;
             
             if (diffHours > 0) {
                 timeSinceLastFeed.textContent = `${diffHours}h ${diffMins}m ago`;
@@ -454,14 +557,14 @@
                 });
             } catch (error) {
                 console.error('Firebase initialization failed:', error);
-                alert('Firebase setup failed. Using local storage only.');
+                alert('Firebase setup failed, mon dieu! Using local storage only.');
             }
         }
 
         function saveFirebaseConfig() {
             const configText = document.getElementById('firebaseConfig').value.trim();
             if (!configText) {
-                alert('Please enter your Firebase configuration.');
+                alert('Please enter your Firebase configuration, oui?');
                 return;
             }
 
@@ -471,7 +574,7 @@
                 initFirebase(config);
                 document.getElementById('configModal').classList.add('hidden');
             } catch (error) {
-                alert('Invalid JSON configuration. Please check your input.');
+                alert('Invalid JSON configuration. Please check your input, s\'il vous plaît!');
             }
         }
 

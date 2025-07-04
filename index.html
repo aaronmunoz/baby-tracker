@@ -614,7 +614,7 @@
                     icon = '🥛';
                     bgColor = 'event-card-feed';
                     const breastText = event.breast === 'left' ? 'left side' : 'right side';
-                    details = `Fed on ${breastText}${event.duration ? ` • ${event.duration} min` : ''}`;
+                    details = 'Fed on ' + breastText + (event.duration ? ' • ' + event.duration + ' min' : '');
                 } else if (event.type === 'diaper') {
                     icon = '🧷';
                     bgColor = 'event-card-diaper';
@@ -628,19 +628,17 @@
                     details = 'Ze Spit-up, oh la la!';
                 }
 
-                return `
-                    <div class="event-card p-4 rounded-lg border-2 ${bgColor}">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <span class="text-2xl">${icon}</span>
-                                <div>
-                                    <div class="font-semibold">${details}</div>
-                                    <div class="text-sm text-gray-600">${time}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                return '<div class="event-card p-4 rounded-lg border-2 ' + bgColor + '">' +
+                    '<div class="flex items-center justify-between">' +
+                        '<div class="flex items-center space-x-3">' +
+                            '<span class="text-2xl">' + icon + '</span>' +
+                            '<div>' +
+                                '<div class="font-semibold">' + details + '</div>' +
+                                '<div class="text-sm text-gray-600">' + time + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
             }).join('');
         }
 
@@ -662,39 +660,75 @@
             const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
             const breastText = lastFeed.breast === 'left' ? 'left side' : 'right side';
-            lastFeedText.textContent = `Last feeding: ${breastText}`;
+            lastFeedText.textContent = 'Last feeding: ' + breastText;
             
             if (diffHours > 0) {
-                timeSinceLastFeed.textContent = `${diffHours}h ${diffMins}m ago`;
+                timeSinceLastFeed.textContent = diffHours + 'h ' + diffMins + 'm ago';
             } else {
-                timeSinceLastFeed.textContent = `${diffMins}m ago`;
+                timeSinceLastFeed.textContent = diffMins + 'm ago';
             }
         }
 
         function initFirebase(config) {
             try {
+                console.log('Initializing Firebase with config:', config);
                 firebaseApp = firebase.initializeApp(config);
                 database = firebase.database();
                 
+                console.log('Firebase app initialized:', firebaseApp);
+                console.log('Database reference:', database);
+                
+                addToLog('🔥 Firebase initialized successfully');
+                
+                // Test database connection
+                database.ref('.info/connected').on('value', function(snapshot) {
+                    if (snapshot.val() === true) {
+                        addToLog('🟢 Firebase connected');
+                        console.log('Firebase connected');
+                    } else {
+                        addToLog('🔴 Firebase disconnected');
+                        console.log('Firebase disconnected');
+                    }
+                });
+                
                 // Listen for changes
-                database.ref('events').on('value', (snapshot) => {
+                database.ref('events').on('value', function(snapshot) {
+                    console.log('Firebase events snapshot received:', snapshot.exists());
+                    addToLog('📡 Received Firebase data update');
+                    
                     if (snapshot.exists()) {
                         const firebaseEvents = Object.values(snapshot.val());
+                        console.log('Firebase events count:', firebaseEvents.length);
+                        addToLog('📥 Found ' + firebaseEvents.length + ' events in Firebase');
+                        
                         // Merge with local events, avoiding duplicates
                         const allEvents = [...events];
-                        firebaseEvents.forEach(fbEvent => {
-                            if (!allEvents.find(e => e.id === fbEvent.id)) {
+                        firebaseEvents.forEach(function(fbEvent) {
+                            if (!allEvents.find(function(e) { return e.id === fbEvent.id; })) {
                                 allEvents.push(fbEvent);
                             }
                         });
-                        events = allEvents.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                        events = allEvents.sort(function(a, b) { 
+                            return new Date(b.timestamp) - new Date(a.timestamp); 
+                        });
                         localStorage.setItem('babyTrackerEvents', JSON.stringify(events));
                         updateTimeline();
                         updateLastFeedInfo();
+                    } else {
+                        console.log('No events found in Firebase');
+                        addToLog('📭 No events found in Firebase');
                     }
                 });
+                
+                // Listen for errors
+                database.ref('events').on('error', function(error) {
+                    console.error('Firebase database error:', error);
+                    addToLog('❌ Firebase error: ' + error.message);
+                });
+                
             } catch (error) {
                 console.error('Firebase initialization failed:', error);
+                addToLog('❌ Firebase init failed: ' + error.message);
                 alert('Firebase setup failed, mon dieu! Using local storage only.');
             }
         }
@@ -804,10 +838,22 @@
             if (database) {
                 firebaseStatus.textContent = '✅ Connected';
                 firebaseStatus.className = 'font-medium text-green-600';
-                const config = firebaseApp.options_;
-                databaseUrl.textContent = config.databaseURL || '-';
-                projectId.textContent = config.projectId || '-';
-                authDomain.textContent = config.authDomain || '-';
+                try {
+                    const config = firebaseApp.options_;
+                    console.log('Firebase config:', config);
+                    
+                    // Try different possible property names for database URL
+                    const dbUrl = config.databaseURL || config.databaseUrl || 
+                                 (config.projectId ? 'https://' + config.projectId + '-default-rtdb.firebaseio.com/' : '-');
+                    databaseUrl.textContent = dbUrl;
+                    projectId.textContent = config.projectId || '-';
+                    authDomain.textContent = config.authDomain || '-';
+                } catch (error) {
+                    console.error('Error reading Firebase config:', error);
+                    databaseUrl.textContent = 'Config read error';
+                    projectId.textContent = '-';
+                    authDomain.textContent = '-';
+                }
             } else {
                 firebaseStatus.textContent = '❌ Not Connected';
                 firebaseStatus.className = 'font-medium text-red-600';

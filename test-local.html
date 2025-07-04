@@ -9,41 +9,261 @@
     <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-database-compat.js"></script>
     <style>
         /* Minimal styling for testing */
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc; }
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
         .error { background: #ffebee; border-color: #f44336; color: #c62828; }
         .success { background: #e8f5e8; border-color: #4caf50; color: #2e7d32; }
         .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
-        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        
+        /* Button styling with tooltips */
+        .btn-group { margin: 20px 0; }
+        .btn-with-tooltip { position: relative; display: inline-block; margin: 5px; }
+        button { 
+            padding: 12px 20px; 
+            margin: 0; 
+            cursor: pointer; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            background: #f8f9fa; 
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        button:hover { background: #e9ecef; border-color: #adb5bd; }
+        button:active { transform: translateY(1px); }
+        
+        /* Tooltip styling */
+        .tooltip {
+            visibility: hidden;
+            width: 300px;
+            background-color: #333;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 12px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -150px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            line-height: 1.4;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        .btn-with-tooltip:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Section styling */
+        .section { 
+            background: #fff; 
+            border: 1px solid #e9ecef; 
+            border-radius: 8px; 
+            padding: 20px; 
+            margin: 20px 0; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section h2 { 
+            margin-top: 0; 
+            color: #495057; 
+            border-bottom: 2px solid #e9ecef; 
+            padding-bottom: 10px; 
+        }
+        
+        /* Config section */
+        #firebaseConfig { 
+            width: 100%; 
+            min-height: 120px; 
+            font-family: monospace; 
+            font-size: 12px; 
+            border: 1px solid #ced4da; 
+            border-radius: 4px; 
+            padding: 10px; 
+        }
+        
+        /* Debug log */
+        #debugLog { 
+            max-height: 300px; 
+            overflow-y: auto; 
+            border: 1px solid #ced4da; 
+            border-radius: 4px; 
+            padding: 10px; 
+            background: #f8f9fa; 
+        }
+        
         .hidden { display: none; }
+        
+        /* Status indicators */
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-unknown { background-color: #6c757d; }
+        .status-success { background-color: #28a745; }
+        .status-error { background-color: #dc3545; }
+        .status-warning { background-color: #ffc107; }
     </style>
 </head>
 <body>
-    <h1>🧪 LOCAL FIREBASE TESTING</h1>
+    <h1>🧪 Firebase Testing Dashboard</h1>
+    <p style="color: #6c757d; margin-bottom: 30px;">
+        Test Firebase connectivity and debug initialization issues locally before deploying to production.
+        Hover over any button to see what it does!
+    </p>
     
-    <div class="debug">
-        <h2>Debug Console</h2>
+    <!-- Debug Console -->
+    <div class="section">
+        <h2>📊 Debug Console</h2>
         <div id="debugLog"></div>
+        <div class="btn-group">
+            <div class="btn-with-tooltip">
+                <button onclick="clearDebugLog()">Clear Log</button>
+                <span class="tooltip">
+                    <strong>Clear Debug Log</strong><br>
+                    Removes all messages from the debug console. Useful when you want to start fresh with a new test sequence.
+                </span>
+            </div>
+        </div>
     </div>
     
-    <div>
-        <h2>Firebase Configuration</h2>
-        <textarea id="firebaseConfig" rows="10" cols="80" placeholder="Paste Firebase config here..."></textarea><br>
-        <button onclick="testFirebaseInit()">Test Firebase Init</button>
-        <button onclick="clearDebugLog()">Clear Log</button>
+    <!-- Firebase Configuration -->
+    <div class="section">
+        <h2>🔥 Firebase Configuration</h2>
+        <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">
+            Paste your Firebase config object below. You can find this in your Firebase Console under Project Settings > General > Your apps.
+        </p>
+        <textarea id="firebaseConfig" placeholder="Paste your Firebase config here, for example:
+{
+  &quot;apiKey&quot;: &quot;your-api-key&quot;,
+  &quot;authDomain&quot;: &quot;your-project.firebaseapp.com&quot;,
+  &quot;projectId&quot;: &quot;your-project-id&quot;,
+  &quot;storageBucket&quot;: &quot;your-project.appspot.com&quot;,
+  &quot;messagingSenderId&quot;: &quot;123456789&quot;,
+  &quot;appId&quot;: &quot;1:123456789:web:abcdef123456&quot;,
+  &quot;databaseURL&quot;: &quot;https://your-project-default-rtdb.firebaseio.com/&quot;
+}"></textarea>
+        
+        <div class="btn-group">
+            <div class="btn-with-tooltip">
+                <button onclick="testFirebaseInit()">🚀 Initialize Firebase</button>
+                <span class="tooltip">
+                    <strong>Initialize Firebase</strong><br>
+                    Validates your config and attempts to initialize Firebase app and database connection. 
+                    This is the first step - run this before any other tests!
+                </span>
+            </div>
+        </div>
     </div>
     
-    <div>
-        <h2>Test Actions</h2>
-        <button onclick="testBasicFirebase()">Test Basic Firebase</button>
-        <button onclick="testEventWrite()">Test Event Write</button>
-        <button onclick="testEventRead()">Test Event Read</button>
+    <!-- Connection Tests -->
+    <div class="section">
+        <h2>🔌 Connection Tests</h2>
+        <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">
+            Test different aspects of Firebase connectivity and operations.
+        </p>
+        
+        <div class="btn-group">
+            <div class="btn-with-tooltip">
+                <button onclick="testBasicFirebase()">🔍 Test Connection</button>
+                <span class="tooltip">
+                    <strong>Test Basic Connection</strong><br>
+                    Performs a complete read/write/delete cycle to verify Firebase is working properly. 
+                    Tests connection, writes test data, reads it back, then cleans up.
+                </span>
+            </div>
+            
+            <div class="btn-with-tooltip">
+                <button onclick="testEventWrite()">📝 Test Write</button>
+                <span class="tooltip">
+                    <strong>Test Event Write</strong><br>
+                    Creates a sample baby feeding event and writes it to Firebase. 
+                    This tests if the app can successfully save events to your database.
+                </span>
+            </div>
+            
+            <div class="btn-with-tooltip">
+                <button onclick="testEventRead()">📖 Test Read</button>
+                <span class="tooltip">
+                    <strong>Test Event Read</strong><br>
+                    Reads all events from the Firebase database and displays them. 
+                    This tests if the app can retrieve existing data from your database.
+                </span>
+            </div>
+        </div>
     </div>
     
-    <div>
-        <h2>Test Event</h2>
-        <button onclick="createTestEvent()">Create Test Feed Event</button>
+    <!-- Quick Actions -->
+    <div class="section">
+        <h2>⚡ Quick Actions</h2>
+        <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">
+            Create test data and perform common operations.
+        </p>
+        
+        <div class="btn-group">
+            <div class="btn-with-tooltip">
+                <button onclick="createTestEvent()">🍼 Create Test Event</button>
+                <span class="tooltip">
+                    <strong>Create Sample Feed Event</strong><br>
+                    Creates a realistic baby feeding event (left breast, 15 minutes) and saves it to Firebase. 
+                    Useful for testing the full event creation workflow.
+                </span>
+            </div>
+            
+            <div class="btn-with-tooltip">
+                <button onclick="runFullTestSuite()">🧪 Run All Tests</button>
+                <span class="tooltip">
+                    <strong>Run Complete Test Suite</strong><br>
+                    Runs all tests in sequence: config validation, initialization, connection, write, read. 
+                    Perfect for a comprehensive Firebase health check.
+                </span>
+            </div>
+        </div>
+        
         <div id="eventResult"></div>
+    </div>
+    
+    <!-- Status Overview -->
+    <div class="section">
+        <h2>📈 Status Overview</h2>
+        <div id="statusOverview">
+            <div style="margin: 10px 0;">
+                <span class="status-indicator status-unknown"></span>
+                <strong>Firebase Config:</strong> <span id="configStatus">Not tested</span>
+            </div>
+            <div style="margin: 10px 0;">
+                <span class="status-indicator status-unknown"></span>
+                <strong>Firebase Init:</strong> <span id="initStatus">Not tested</span>
+            </div>
+            <div style="margin: 10px 0;">
+                <span class="status-indicator status-unknown"></span>
+                <strong>Database Connection:</strong> <span id="connectionStatus">Not tested</span>
+            </div>
+            <div style="margin: 10px 0;">
+                <span class="status-indicator status-unknown"></span>
+                <strong>Write Operations:</strong> <span id="writeStatus">Not tested</span>
+            </div>
+            <div style="margin: 10px 0;">
+                <span class="status-indicator status-unknown"></span>
+                <strong>Read Operations:</strong> <span id="readStatus">Not tested</span>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -76,22 +296,46 @@
             updateDebugDisplay();
         }
 
+        function updateStatus(elementId, status, message) {
+            const element = document.getElementById(elementId);
+            const indicator = element.previousElementSibling;
+            
+            element.textContent = message;
+            indicator.className = 'status-indicator status-' + status;
+        }
+
         function testFirebaseInit() {
             debugLog('🧪 Starting Firebase initialization test...');
+            updateStatus('configStatus', 'unknown', 'Testing...');
+            updateStatus('initStatus', 'unknown', 'Testing...');
             
             const configText = document.getElementById('firebaseConfig').value.trim();
             if (!configText) {
                 debugLog('❌ No config provided', 'error');
+                updateStatus('configStatus', 'error', 'No config provided');
                 return;
             }
 
             try {
                 const config = JSON.parse(configText);
                 debugLog('✅ Config parsed successfully');
+                updateStatus('configStatus', 'success', 'Valid JSON config');
+                
+                // Validate required fields
+                const requiredFields = ['apiKey', 'authDomain', 'projectId', 'appId'];
+                const missingFields = requiredFields.filter(field => !config[field]);
+                
+                if (missingFields.length > 0) {
+                    debugLog(`❌ Missing required fields: ${missingFields.join(', ')}`, 'error');
+                    updateStatus('configStatus', 'error', `Missing: ${missingFields.join(', ')}`);
+                    return;
+                }
+                
                 debugLog(`Project ID: ${config.projectId || 'NOT FOUND'}`);
                 debugLog(`Auth Domain: ${config.authDomain || 'NOT FOUND'}`);
                 debugLog(`Database URL: ${config.databaseURL || 'NOT FOUND'}`);
                 debugLog(`API Key: ${config.apiKey ? 'PRESENT' : 'NOT FOUND'}`);
+                updateStatus('configStatus', 'success', 'All required fields present');
                 
                 // Test Firebase initialization
                 if (firebaseApp) {
@@ -104,9 +348,11 @@
                 debugLog('🔥 Initializing Firebase...');
                 firebaseApp = firebase.initializeApp(config);
                 debugLog('✅ Firebase app initialized', 'success');
+                updateStatus('initStatus', 'success', 'Firebase app created');
                 
                 database = firebase.database();
                 debugLog('✅ Database reference created', 'success');
+                updateStatus('connectionStatus', 'unknown', 'Testing connection...');
                 
                 // Test connection
                 debugLog('🔌 Testing database connection...');
@@ -114,16 +360,21 @@
                     .then(function(snapshot) {
                         if (snapshot.val() === true) {
                             debugLog('✅ Database connection successful!', 'success');
+                            updateStatus('connectionStatus', 'success', 'Connected to Firebase');
                         } else {
                             debugLog('❌ Database not connected', 'error');
+                            updateStatus('connectionStatus', 'error', 'Not connected');
                         }
                     })
                     .catch(function(error) {
                         debugLog(`❌ Connection test failed: ${error.message}`, 'error');
+                        updateStatus('connectionStatus', 'error', `Connection failed: ${error.message}`);
                     });
                 
             } catch (error) {
                 debugLog(`❌ Firebase init failed: ${error.message}`, 'error');
+                updateStatus('configStatus', 'error', 'Invalid JSON config');
+                updateStatus('initStatus', 'error', 'Initialization failed');
                 console.error('Firebase error:', error);
             }
         }
@@ -172,8 +423,11 @@
         function testEventWrite() {
             if (!database) {
                 debugLog('❌ No database connection', 'error');
+                updateStatus('writeStatus', 'error', 'No database connection');
                 return;
             }
+            
+            updateStatus('writeStatus', 'unknown', 'Testing...');
             
             const testEvent = {
                 id: 'test_' + Date.now(),
@@ -189,18 +443,22 @@
             database.ref('events/' + testEvent.id).set(testEvent)
                 .then(function() {
                     debugLog('✅ Event write successful!', 'success');
+                    updateStatus('writeStatus', 'success', 'Write operations working');
                 })
                 .catch(function(error) {
                     debugLog(`❌ Event write failed: ${error.message}`, 'error');
+                    updateStatus('writeStatus', 'error', `Write failed: ${error.message}`);
                 });
         }
 
         function testEventRead() {
             if (!database) {
                 debugLog('❌ No database connection', 'error');
+                updateStatus('readStatus', 'error', 'No database connection');
                 return;
             }
             
+            updateStatus('readStatus', 'unknown', 'Testing...');
             debugLog('🧪 Testing event read...');
             
             database.ref('events').once('value')
@@ -210,13 +468,42 @@
                         const eventCount = Object.keys(events).length;
                         debugLog(`✅ Found ${eventCount} events in database`, 'success');
                         debugLog(`Events: ${JSON.stringify(events, null, 2)}`);
+                        updateStatus('readStatus', 'success', `Found ${eventCount} events`);
                     } else {
                         debugLog('📭 No events found in database', 'warning');
+                        updateStatus('readStatus', 'warning', 'No events found');
                     }
                 })
                 .catch(function(error) {
                     debugLog(`❌ Event read failed: ${error.message}`, 'error');
+                    updateStatus('readStatus', 'error', `Read failed: ${error.message}`);
                 });
+        }
+
+        function runFullTestSuite() {
+            debugLog('🚀 Starting full test suite...');
+            
+            // Reset all statuses
+            updateStatus('configStatus', 'unknown', 'Not tested');
+            updateStatus('initStatus', 'unknown', 'Not tested');
+            updateStatus('connectionStatus', 'unknown', 'Not tested');
+            updateStatus('writeStatus', 'unknown', 'Not tested');
+            updateStatus('readStatus', 'unknown', 'Not tested');
+            
+            // Run tests in sequence with delays
+            testFirebaseInit();
+            
+            setTimeout(function() {
+                if (database) {
+                    testBasicFirebase();
+                    setTimeout(function() {
+                        testEventWrite();
+                        setTimeout(function() {
+                            testEventRead();
+                        }, 2000);
+                    }, 2000);
+                }
+            }, 3000);
         }
 
         function createTestEvent() {

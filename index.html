@@ -176,7 +176,7 @@
                     <p class="text-sm french-accent">~ Baby's Journal ~</p>
                 </div>
                 <div class="flex gap-2">
-                    <button id="diagnosticsBtn" class="text-white hover:text-gray-200 transition-colors" title="Diagnostics">
+                    <button id="diagnosticsBtn" class="text-white hover:text-gray-200 transition-colors" title="Diagnostics" onclick="showDiagnostics()">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                         </svg>
@@ -380,13 +380,13 @@
             <div class="mb-6">
                 <h3 class="text-lg font-semibold mb-2 french-header">Test Actions</h3>
                 <div class="flex gap-2 flex-wrap">
-                    <button id="testFirebaseBtn" class="btn-secondary px-3 py-1 text-sm rounded">
+                    <button id="testFirebaseBtn" class="btn-secondary px-3 py-1 text-sm rounded" onclick="testFirebaseConnection()">
                         Test Firebase
                     </button>
-                    <button id="exportDataBtn" class="btn-secondary px-3 py-1 text-sm rounded">
+                    <button id="exportDataBtn" class="btn-secondary px-3 py-1 text-sm rounded" onclick="exportData()">
                         Export Data
                     </button>
-                    <button id="clearLocalBtn" class="btn-secondary px-3 py-1 text-sm rounded">
+                    <button id="clearLocalBtn" class="btn-secondary px-3 py-1 text-sm rounded" onclick="clearLocalData()">
                         Clear Local Data
                     </button>
                 </div>
@@ -394,7 +394,7 @@
 
             <!-- Close Button -->
             <div class="flex justify-center">
-                <button id="closeDiagnosticsBtn" class="btn-primary px-6 py-2 rounded-lg">
+                <button id="closeDiagnosticsBtn" class="btn-primary px-6 py-2 rounded-lg" onclick="hideDiagnostics()">
                     Close Diagnostics
                 </button>
             </div>
@@ -412,6 +412,7 @@
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing app');
             initializeApp();
             updateTimeline();
             updateLastFeedInfo();
@@ -762,7 +763,7 @@
         // Diagnostic Functions
         function addToLog(message) {
             const timestamp = new Date().toLocaleTimeString();
-            diagnosticsLog.unshift(`[${timestamp}] ${message}`);
+            diagnosticsLog.unshift('[' + timestamp + '] ' + message);
             if (diagnosticsLog.length > 50) diagnosticsLog.pop();
             updateDiagnosticsLog();
         }
@@ -770,9 +771,9 @@
         function updateDiagnosticsLog() {
             const logElement = document.getElementById('diagnosticsLog');
             if (logElement && diagnosticsLog.length > 0) {
-                logElement.innerHTML = diagnosticsLog.map(log => 
-                    `<div class="mb-1 text-gray-700">${log}</div>`
-                ).join('');
+                logElement.innerHTML = diagnosticsLog.map(function(log) {
+                    return '<div class="mb-1 text-gray-700">' + log + '</div>';
+                }).join('');
             }
         }
 
@@ -835,7 +836,7 @@
             // Local Storage
             const eventsData = localStorage.getItem('babyTrackerEvents');
             const eventsSize = eventsData ? (eventsData.length / 1024).toFixed(1) : '0';
-            document.getElementById('localStorageSize').textContent = `${eventsSize} KB`;
+            document.getElementById('localStorageSize').textContent = eventsSize + ' KB';
             
             const configExists = localStorage.getItem('firebaseConfig');
             document.getElementById('configSaved').textContent = configExists && configExists !== 'skipped' ? 'Yes' : 'No';
@@ -877,9 +878,9 @@
                     addToLog('✅ Firebase test cleanup successful');
                     alert('Firebase connection test passed! 🎉');
                 })
-                .catch((error) => {
-                    addToLog(`❌ Firebase test failed: ${error.message}`);
-                    alert(`Firebase test failed: ${error.message}`);
+                .catch(function(error) {
+                    addToLog('❌ Firebase test failed: ' + error.message);
+                    alert('Firebase test failed: ' + error.message);
                 });
         }
 
@@ -896,12 +897,12 @@
             
             const link = document.createElement('a');
             link.href = URL.createObjectURL(dataBlob);
-            link.download = `baby-tracker-export-${new Date().toISOString().split('T')[0]}.json`;
+            link.download = 'baby-tracker-export-' + new Date().toISOString().split('T')[0] + '.json';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             
-            addToLog(`✅ Exported ${exportData.events.length} events`);
+            addToLog('✅ Exported ' + exportData.events.length + ' events');
         }
 
         function clearLocalData() {
@@ -919,7 +920,7 @@
         // Enhanced logging for existing functions
         const originalLogEvent = logEvent;
         logEvent = function(type, details) {
-            addToLog(`📝 Logging ${type} event`);
+            addToLog('📝 Logging ' + type + ' event');
             originalLogEvent(type, details);
         };
 
@@ -927,9 +928,9 @@
         saveEvent = function(event) {
             originalSaveEvent(event);
             if (database) {
-                addToLog(`☁️ Syncing ${event.type} to Firebase`);
+                addToLog('☁️ Syncing ' + event.type + ' to Firebase');
             } else {
-                addToLog(`💾 Saving ${event.type} locally only`);
+                addToLog('💾 Saving ' + event.type + ' locally only');
             }
         };
 

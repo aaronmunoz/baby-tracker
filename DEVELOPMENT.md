@@ -1,24 +1,43 @@
 # Development Workflow
 
+## Prerequisites
+- Node.js 18+ 
+- npm or yarn
+
 ## Local Testing Setup
 
 ### Quick Start
-1. **Start local server:**
+1. **Install dependencies:**
    ```bash
    cd baby-tracker
-   python3 dev-server.py
+   npm install
+   ```
+
+2. **Start development server:**
+   ```bash
+   npm run dev
    ```
    
-2. **Open test page:** http://localhost:8000/test-local.html
+3. **Open test page:** http://localhost:8000/test-local.html
 
-3. **Test Firebase:**
+4. **Test Firebase:**
    - Paste your Firebase config into the textarea
    - Click "Test Firebase Init"
    - Run through all the test functions
 
+### Available Scripts
+- `npm run dev` - Start development server and open test page
+- `npm run serve` - Start server only
+- `npm run test` - Run Firebase test suite
+- `npm run build` - Type check TypeScript
+- `npm run lint` - Lint TypeScript files
+- `npm run type-check` - Type check without building
+
 ### Files
 - `test-local.html` - Isolated testing environment for Firebase debugging
-- `dev-server.py` - Local development server with CORS headers
+- `src/dev-server.ts` - TypeScript development server with CORS headers
+- `src/test-firebase.ts` - Comprehensive Firebase testing suite
+- `src/types.ts` - TypeScript type definitions
 - `index.html` - Main production app
 
 ### Testing Process

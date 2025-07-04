@@ -1,0 +1,40 @@
+{
+  "name": "le-petit-marche-baby-tracker",
+  "version": "1.0.0",
+  "description": "A vintage French market themed baby tracker with Firebase sync",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npm run build && npm run serve",
+    "serve": "http-server -p 8000 -c-1 --cors -o",
+    "build": "npm run build:types",
+    "build:types": "tsc --noEmit",
+    "test": "npm run test:firebase",
+    "test:firebase": "ts-node src/test-firebase.ts",
+    "lint": "eslint src/**/*.ts",
+    "type-check": "tsc --noEmit",
+    "dev:watch": "concurrently \"npm run serve\" \"npm run build:types -- --watch\""
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "concurrently": "^8.0.0",
+    "eslint": "^8.0.0",
+    "http-server": "^14.0.0",
+    "ts-node": "^10.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "baby-tracker",
+    "firebase",
+    "typescript",
+    "vintage",
+    "french"
+  ],
+  "author": "Claude Code",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aaronmunoz/baby-tracker.git"
+  }
+}

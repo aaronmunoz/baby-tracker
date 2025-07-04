@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Petit Marché • Baby Tracker - LOCAL TEST</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-database-compat.js"></script>
+    <style>
+        /* Minimal styling for testing */
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc; }
+        .error { background: #ffebee; border-color: #f44336; color: #c62828; }
+        .success { background: #e8f5e8; border-color: #4caf50; color: #2e7d32; }
+        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>🧪 LOCAL FIREBASE TESTING</h1>
+    
+    <div class="debug">
+        <h2>Debug Console</h2>
+        <div id="debugLog"></div>
+    </div>
+    
+    <div>
+        <h2>Firebase Configuration</h2>
+        <textarea id="firebaseConfig" rows="10" cols="80" placeholder="Paste Firebase config here..."></textarea><br>
+        <button onclick="testFirebaseInit()">Test Firebase Init</button>
+        <button onclick="clearDebugLog()">Clear Log</button>
+    </div>
+    
+    <div>
+        <h2>Test Actions</h2>
+        <button onclick="testBasicFirebase()">Test Basic Firebase</button>
+        <button onclick="testEventWrite()">Test Event Write</button>
+        <button onclick="testEventRead()">Test Event Read</button>
+    </div>
+    
+    <div>
+        <h2>Test Event</h2>
+        <button onclick="createTestEvent()">Create Test Feed Event</button>
+        <div id="eventResult"></div>
+    </div>
+
+    <script>
+        let firebaseApp = null;
+        let database = null;
+        let debugMessages = [];
+
+        function debugLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            debugMessages.push({message: logMessage, type: type});
+            updateDebugDisplay();
+            console.log(logMessage);
+        }
+
+        function updateDebugDisplay() {
+            const logDiv = document.getElementById('debugLog');
+            logDiv.innerHTML = debugMessages.map(msg => {
+                let className = 'debug';
+                if (msg.type === 'error') className += ' error';
+                if (msg.type === 'success') className += ' success';
+                if (msg.type === 'warning') className += ' warning';
+                return `<div class="${className}">${msg.message}</div>`;
+            }).join('');
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearDebugLog() {
+            debugMessages = [];
+            updateDebugDisplay();
+        }
+
+        function testFirebaseInit() {
+            debugLog('🧪 Starting Firebase initialization test...');
+            
+            const configText = document.getElementById('firebaseConfig').value.trim();
+            if (!configText) {
+                debugLog('❌ No config provided', 'error');
+                return;
+            }
+
+            try {
+                const config = JSON.parse(configText);
+                debugLog('✅ Config parsed successfully');
+                debugLog(`Project ID: ${config.projectId || 'NOT FOUND'}`);
+                debugLog(`Auth Domain: ${config.authDomain || 'NOT FOUND'}`);
+                debugLog(`Database URL: ${config.databaseURL || 'NOT FOUND'}`);
+                debugLog(`API Key: ${config.apiKey ? 'PRESENT' : 'NOT FOUND'}`);
+                
+                // Test Firebase initialization
+                if (firebaseApp) {
+                    debugLog('🔄 Deleting existing Firebase app...');
+                    firebaseApp.delete();
+                    firebaseApp = null;
+                    database = null;
+                }
+                
+                debugLog('🔥 Initializing Firebase...');
+                firebaseApp = firebase.initializeApp(config);
+                debugLog('✅ Firebase app initialized', 'success');
+                
+                database = firebase.database();
+                debugLog('✅ Database reference created', 'success');
+                
+                // Test connection
+                debugLog('🔌 Testing database connection...');
+                database.ref('.info/connected').once('value')
+                    .then(function(snapshot) {
+                        if (snapshot.val() === true) {
+                            debugLog('✅ Database connection successful!', 'success');
+                        } else {
+                            debugLog('❌ Database not connected', 'error');
+                        }
+                    })
+                    .catch(function(error) {
+                        debugLog(`❌ Connection test failed: ${error.message}`, 'error');
+                    });
+                
+            } catch (error) {
+                debugLog(`❌ Firebase init failed: ${error.message}`, 'error');
+                console.error('Firebase error:', error);
+            }
+        }
+
+        function testBasicFirebase() {
+            if (!database) {
+                debugLog('❌ No database connection', 'error');
+                return;
+            }
+            
+            debugLog('🧪 Testing basic Firebase operations...');
+            
+            // Test write
+            const testData = {
+                test: true,
+                timestamp: new Date().toISOString(),
+                message: 'Test from local development'
+            };
+            
+            database.ref('test-connection').set(testData)
+                .then(function() {
+                    debugLog('✅ Write test successful', 'success');
+                    
+                    // Test read
+                    return database.ref('test-connection').once('value');
+                })
+                .then(function(snapshot) {
+                    if (snapshot.exists()) {
+                        debugLog('✅ Read test successful', 'success');
+                        debugLog(`Data: ${JSON.stringify(snapshot.val())}`);
+                        
+                        // Clean up
+                        return database.ref('test-connection').remove();
+                    } else {
+                        throw new Error('No data found in read test');
+                    }
+                })
+                .then(function() {
+                    debugLog('✅ Cleanup successful', 'success');
+                })
+                .catch(function(error) {
+                    debugLog(`❌ Basic test failed: ${error.message}`, 'error');
+                });
+        }
+
+        function testEventWrite() {
+            if (!database) {
+                debugLog('❌ No database connection', 'error');
+                return;
+            }
+            
+            const testEvent = {
+                id: 'test_' + Date.now(),
+                timestamp: new Date().toISOString(),
+                type: 'feed',
+                breast: 'left',
+                duration: 25
+            };
+            
+            debugLog('🧪 Testing event write...');
+            debugLog(`Event: ${JSON.stringify(testEvent)}`);
+            
+            database.ref('events/' + testEvent.id).set(testEvent)
+                .then(function() {
+                    debugLog('✅ Event write successful!', 'success');
+                })
+                .catch(function(error) {
+                    debugLog(`❌ Event write failed: ${error.message}`, 'error');
+                });
+        }
+
+        function testEventRead() {
+            if (!database) {
+                debugLog('❌ No database connection', 'error');
+                return;
+            }
+            
+            debugLog('🧪 Testing event read...');
+            
+            database.ref('events').once('value')
+                .then(function(snapshot) {
+                    if (snapshot.exists()) {
+                        const events = snapshot.val();
+                        const eventCount = Object.keys(events).length;
+                        debugLog(`✅ Found ${eventCount} events in database`, 'success');
+                        debugLog(`Events: ${JSON.stringify(events, null, 2)}`);
+                    } else {
+                        debugLog('📭 No events found in database', 'warning');
+                    }
+                })
+                .catch(function(error) {
+                    debugLog(`❌ Event read failed: ${error.message}`, 'error');
+                });
+        }
+
+        function createTestEvent() {
+            if (!database) {
+                debugLog('❌ No database connection', 'error');
+                return;
+            }
+            
+            const event = {
+                id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                type: 'feed',
+                breast: 'left',
+                duration: 15
+            };
+            
+            debugLog('📝 Creating test feed event...');
+            
+            database.ref('events/' + event.id).set(event)
+                .then(function() {
+                    debugLog('✅ Test event created successfully!', 'success');
+                    document.getElementById('eventResult').innerHTML = 
+                        `<div class="debug success">Event created: ${JSON.stringify(event)}</div>`;
+                })
+                .catch(function(error) {
+                    debugLog(`❌ Test event creation failed: ${error.message}`, 'error');
+                });
+        }
+
+        // Initialize debug log
+        debugLog('🧪 Local testing environment ready');
+        debugLog('📋 Steps: 1) Paste Firebase config 2) Test Firebase Init 3) Run tests');
+    </script>
+</body>
+</html>

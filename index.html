@@ -175,12 +175,19 @@
                     <h1 class="text-2xl font-bold french-header">Le Petit Marché</h1>
                     <p class="text-sm french-accent">~ Baby's Journal ~</p>
                 </div>
-                <button id="configBtn" class="text-white hover:text-gray-200 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                </button>
+                <div class="flex gap-2">
+                    <button id="diagnosticsBtn" class="text-white hover:text-gray-200 transition-colors" title="Diagnostics">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </button>
+                    <button id="configBtn" class="text-white hover:text-gray-200 transition-colors" title="Settings">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div id="lastFeedInfo" class="mt-2 text-sm opacity-90">
                 <div id="lastFeedText">No recent feeding, mon petit</div>
@@ -295,6 +302,105 @@
         </div>
     </div>
 
+    <!-- Diagnostics Modal -->
+    <div id="diagnosticsModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="vintage-paper rounded-lg max-w-lg w-full p-6 max-h-[80vh] overflow-y-auto">
+            <h2 class="text-xl font-bold mb-4 french-header">App Diagnostics</h2>
+            
+            <!-- Firebase Status -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2 french-header">Firebase Status</h3>
+                <div class="market-stall text-sm">
+                    <div class="flex justify-between items-center mb-2">
+                        <span>Connection:</span>
+                        <span id="firebaseStatus" class="font-medium">Checking...</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span>Database URL:</span>
+                        <span id="databaseUrl" class="font-mono text-xs break-all">-</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span>Project ID:</span>
+                        <span id="projectId" class="font-mono text-xs">-</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>Auth Domain:</span>
+                        <span id="authDomain" class="font-mono text-xs break-all">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event Data -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2 french-header">Event Data</h3>
+                <div class="market-stall text-sm">
+                    <div class="flex justify-between items-center mb-2">
+                        <span>Local Events:</span>
+                        <span id="localEventCount" class="font-medium">0</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span>Today's Events:</span>
+                        <span id="todayEventCount" class="font-medium">0</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span>Demo Mode:</span>
+                        <span id="demoModeStatus" class="font-medium">Off</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>Last Event:</span>
+                        <span id="lastEventTime" class="font-mono text-xs">None</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Local Storage -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2 french-header">Local Storage</h3>
+                <div class="market-stall text-sm">
+                    <div class="flex justify-between items-center mb-2">
+                        <span>Events Saved:</span>
+                        <span id="localStorageSize" class="font-medium">0 KB</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>Config Saved:</span>
+                        <span id="configSaved" class="font-medium">No</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Logs -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2 french-header">Recent Activity</h3>
+                <div id="diagnosticsLog" class="market-stall text-xs font-mono max-h-32 overflow-y-auto">
+                    <div class="text-gray-600">No activity yet...</div>
+                </div>
+            </div>
+
+            <!-- Test Actions -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2 french-header">Test Actions</h3>
+                <div class="flex gap-2 flex-wrap">
+                    <button id="testFirebaseBtn" class="btn-secondary px-3 py-1 text-sm rounded">
+                        Test Firebase
+                    </button>
+                    <button id="exportDataBtn" class="btn-secondary px-3 py-1 text-sm rounded">
+                        Export Data
+                    </button>
+                    <button id="clearLocalBtn" class="btn-secondary px-3 py-1 text-sm rounded">
+                        Clear Local Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Close Button -->
+            <div class="flex justify-center">
+                <button id="closeDiagnosticsBtn" class="btn-primary px-6 py-2 rounded-lg">
+                    Close Diagnostics
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Global variables
         let firebaseApp = null;
@@ -302,6 +408,7 @@
         let selectedBreast = null;
         let events = [];
         let demoMode = false;
+        let diagnosticsLog = [];
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
@@ -358,6 +465,13 @@
             });
             document.getElementById('saveConfigBtn').addEventListener('click', saveFirebaseConfig);
             document.getElementById('skipConfigBtn').addEventListener('click', skipFirebaseConfig);
+
+            // Diagnostics modal
+            document.getElementById('diagnosticsBtn').addEventListener('click', showDiagnostics);
+            document.getElementById('closeDiagnosticsBtn').addEventListener('click', hideDiagnostics);
+            document.getElementById('testFirebaseBtn').addEventListener('click', testFirebaseConnection);
+            document.getElementById('exportDataBtn').addEventListener('click', exportData);
+            document.getElementById('clearLocalBtn').addEventListener('click', clearLocalData);
 
             // Demo toggle
             document.getElementById('demoToggle').addEventListener('click', toggleDemoData);
@@ -622,12 +736,185 @@
             updateLastFeedInfo();
         }
 
-        // Close modal when clicking outside
+        // Diagnostic Functions
+        function addToLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            diagnosticsLog.unshift(`[${timestamp}] ${message}`);
+            if (diagnosticsLog.length > 50) diagnosticsLog.pop();
+            updateDiagnosticsLog();
+        }
+
+        function updateDiagnosticsLog() {
+            const logElement = document.getElementById('diagnosticsLog');
+            if (logElement && diagnosticsLog.length > 0) {
+                logElement.innerHTML = diagnosticsLog.map(log => 
+                    `<div class="mb-1 text-gray-700">${log}</div>`
+                ).join('');
+            }
+        }
+
+        function showDiagnostics() {
+            addToLog('Opening diagnostics panel');
+            updateDiagnosticsInfo();
+            document.getElementById('diagnosticsModal').classList.remove('hidden');
+        }
+
+        function hideDiagnostics() {
+            document.getElementById('diagnosticsModal').classList.add('hidden');
+        }
+
+        function updateDiagnosticsInfo() {
+            // Firebase Status
+            const firebaseStatus = document.getElementById('firebaseStatus');
+            const databaseUrl = document.getElementById('databaseUrl');
+            const projectId = document.getElementById('projectId');
+            const authDomain = document.getElementById('authDomain');
+
+            if (database) {
+                firebaseStatus.textContent = '✅ Connected';
+                firebaseStatus.className = 'font-medium text-green-600';
+                const config = firebaseApp.options_;
+                databaseUrl.textContent = config.databaseURL || '-';
+                projectId.textContent = config.projectId || '-';
+                authDomain.textContent = config.authDomain || '-';
+            } else {
+                firebaseStatus.textContent = '❌ Not Connected';
+                firebaseStatus.className = 'font-medium text-red-600';
+                databaseUrl.textContent = 'No Firebase config';
+                projectId.textContent = '-';
+                authDomain.textContent = '-';
+            }
+
+            // Event Data
+            document.getElementById('localEventCount').textContent = events.length;
+            const today = new Date().toDateString();
+            const todayEvents = events.filter(event => 
+                new Date(event.timestamp).toDateString() === today && !event.demo
+            );
+            document.getElementById('todayEventCount').textContent = todayEvents.length;
+            document.getElementById('demoModeStatus').textContent = demoMode ? 'On' : 'Off';
+            
+            const lastEvent = events.find(e => !e.demo);
+            if (lastEvent) {
+                const time = new Date(lastEvent.timestamp).toLocaleString();
+                document.getElementById('lastEventTime').textContent = time;
+            } else {
+                document.getElementById('lastEventTime').textContent = 'None';
+            }
+
+            // Local Storage
+            const eventsData = localStorage.getItem('babyTrackerEvents');
+            const eventsSize = eventsData ? (eventsData.length / 1024).toFixed(1) : '0';
+            document.getElementById('localStorageSize').textContent = `${eventsSize} KB`;
+            
+            const configExists = localStorage.getItem('firebaseConfig');
+            document.getElementById('configSaved').textContent = configExists && configExists !== 'skipped' ? 'Yes' : 'No';
+        }
+
+        function testFirebaseConnection() {
+            addToLog('Testing Firebase connection...');
+            
+            if (!database) {
+                addToLog('❌ No Firebase database configured');
+                alert('No Firebase database configured. Please set up Firebase first.');
+                return;
+            }
+
+            // Test write
+            const testEvent = {
+                id: 'test_' + Date.now(),
+                timestamp: new Date().toISOString(),
+                type: 'test',
+                message: 'Connection test'
+            };
+
+            database.ref('test/' + testEvent.id).set(testEvent)
+                .then(() => {
+                    addToLog('✅ Firebase write test successful');
+                    // Test read
+                    return database.ref('test/' + testEvent.id).once('value');
+                })
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        addToLog('✅ Firebase read test successful');
+                        // Clean up test data
+                        return database.ref('test/' + testEvent.id).remove();
+                    } else {
+                        throw new Error('Test data not found');
+                    }
+                })
+                .then(() => {
+                    addToLog('✅ Firebase test cleanup successful');
+                    alert('Firebase connection test passed! 🎉');
+                })
+                .catch((error) => {
+                    addToLog(`❌ Firebase test failed: ${error.message}`);
+                    alert(`Firebase test failed: ${error.message}`);
+                });
+        }
+
+        function exportData() {
+            addToLog('Exporting data...');
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                events: events.filter(e => !e.demo),
+                diagnosticsLog: diagnosticsLog.slice(0, 20)
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `baby-tracker-export-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            addToLog(`✅ Exported ${exportData.events.length} events`);
+        }
+
+        function clearLocalData() {
+            if (confirm('Are you sure you want to clear all local data? This cannot be undone.')) {
+                localStorage.removeItem('babyTrackerEvents');
+                events = [];
+                addToLog('🗑️ Local data cleared');
+                updateTimeline();
+                updateLastFeedInfo();
+                updateDiagnosticsInfo();
+                alert('Local data cleared successfully!');
+            }
+        }
+
+        // Enhanced logging for existing functions
+        const originalLogEvent = logEvent;
+        logEvent = function(type, details) {
+            addToLog(`📝 Logging ${type} event`);
+            originalLogEvent(type, details);
+        };
+
+        const originalSaveEvent = saveEvent;
+        saveEvent = function(event) {
+            originalSaveEvent(event);
+            if (database) {
+                addToLog(`☁️ Syncing ${event.type} to Firebase`);
+            } else {
+                addToLog(`💾 Saving ${event.type} locally only`);
+            }
+        };
+
+        // Close modals when clicking outside
         document.getElementById('configModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 if (localStorage.getItem('firebaseConfig')) {
                     this.classList.add('hidden');
                 }
+            }
+        });
+
+        document.getElementById('diagnosticsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
             }
         });
     </script>
